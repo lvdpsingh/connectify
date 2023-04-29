@@ -1,0 +1,265 @@
+brew update
+brew upgrade
+brew install php
+brew install mysql
+brew services start mysql
+brew services stop mysql
+--
+brew list
+brew outdated
+--
+brew installs packages in
+brew /usr/local/Cellar
+--
+mysql -uroot -p
+brew services stop mysql
+pkill mysqld
+rm -rf /usr/local/var/mysql/
+brew postinstall mysql
+--
+brew services restart mysql
+--
+brew remove node
+--
+brew uninstall --force node
+rm /usr/local/bin/composer
+brew cleanup
+brew doctor
+brew install composer
+--
+pwd
+--
+//go to the projectdirectory
+composer create-project --prefer-dist laravel/laravel blog
+--
+//install laravel globally
+composer global require laravel/installer
+
+//set path environment variable for global commands
+sudo nano /etc/paths
+//paste below in the editor at bottom
+
+/Users/lovedeepsingh/.composer/vendor/bin
+then do ctrl+x , then yes
+--
+php artisan serve
+--
+composer global require laravel/valet
+valet/install
+//optional: valet domain test
+---
+sudo lsof -i ':80'
+sudo netstat -an | grep LISTEN
+tail -5 /var/log/httpd/error_log
+which -a httpd
+whereis httpd
+--
+phpmyadmin in mac --> https://gist.github.com/kitloong/5f66a140f38b9698e8c3ed13b968ff47
+---
+php artisan make:migration create_posts_table --create="posts"
+php artisan migrate
+php artisan migrate:rollback
+---
+php artisan make:migration create_posts_table --create="posts"
+---
+php artisan breeze:install
+npm install && npm run dev
+php artisan migrate
+---
+php artisan r:l  //shows all routes
+---
+php artisan make:model Homeslide -m   //creates model and database migration
+//update database file (in databases->migrations)
+//update model
+//then run below
+php artisan migrate
+---
+php artisan make:controller Home/HomeSlideController
+-------
+Query builder
+$data = array();
+$data['category_name'] = $request->category_name;
+$data['user_id'] = Auth::user->id;
+DB::table('categories_table')->insert($data);
+
+//insert facade also in controller
+---
+
+-------
+------*****-----START-----*****---
+Separating Admin View and User View:
+1. Visual Layouts - Blade
+2. Controller -> Routes to that controller
+3. Default redirect after login : AuthLoginController ==> do the redirect
+4. Additional Middleware to protect admin area
+---
+php artisan make:Model Role -m
+Models -> update User and Role relationships
+
+php artisan make:seed UsersTableSeeder
+php artisan make:seed RolesTableSeeder
+
+//Migrate the tables
+
+//insert the seed data into the db
+php artisan db:seed
+
+//checking relationships and records
+php artisan tinker
+    App\User::find(1);
+    App\User::find(2);
+    App\Role::find(1);
+    App\User::find(1)->role;
+    App\Role::find(1)->users;
+
+//create controllers
+php artisan make:controller Admin/ServiceController
+php artisan make:controller Customer/ServiceController
+
+//create middleware
+php artisan make:middleware AdminMiddleware
+php artisan make:middleware CustomerMiddleware
+
+//register in Kernel.php (in $routeMiddleware)
+--
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CustomerMiddleware;
+
+'admin' => AdminMiddleware::class,
+'customer' => CustomerMiddleware::class
+--
+
+//create Routes (web.php)
+--
+Route::group(['as' => 'admin.','prefix'=>'admin','namespace'=>'Admin', 'middleware'=>['auth','admin']],
+            function(){
+            Route::get('dashboard','DashboardController@index')->name('dashboard');
+        });
+
+Route::group(['as'=>'customer.','prefix'=>'customer','namespace'=>'Customer', 'middleware'=>['auth','customer']],
+            function(){
+            Route::get('dashboard','DashboardController@index')->name('dashboard');
+        });
+--
+//create two folders in view - admin, customer - (add the below lines to two files)
+dashboard.blade.php --> You are logged in as {{ Auth::user()->name}}
+
+//update DashboardController - update both controllers
+public function index(){
+    return view('admin.dashboard');
+}
+
+public function index(){
+    return view('customer.dashboard');
+}
+--
+--
+//update Middlewares- AdminMiddleware     //in function handle
+use Illuminate\Support\Facades\Auth;
+
+if(Auth::check() && Auth::user()->role->id == 1){
+    return $next($request);
+}else{
+    return redirect()->route('login')
+}
+
+//CustomerMiddleware
+if(Auth::check() && Auth::user()->role->id == 2){
+    return $next($request);
+}else{
+    return redirect()->route('login')
+}
+--
+//Update RedirectIfAuthenticated.php
+if (Auth::guard($guard)->check() && Auth::user()->role->id==1) {
+    return redirect()->route('admin.dashboard');
+}elseif(Auth::guard($guard)->check() && Auth::user()->role->id==2){
+    return redirect()->route('customer.dashboard');
+}else{
+    return $next($request);
+}
+--
+//update LoginController.php in Auth
+use Auth
+
+protected $redirectTo;
+
+public function __construct(){
+
+    if(Auth::check() && Auth::user()->role->id == 1){
+        $this->redirectTo = route('admin.dashboard');
+    }else{
+        $this->redirectTo = route('customer.dashboard');
+    }
+
+    //leave as is
+}
+
+//update RegisterController.php in Auth
+use Auth
+
+protected $redirectTo;
+
+public function __construct(){
+
+    if(Auth::check() && Auth::user()->role->id == 1){
+        $this->redirectTo = route('admin.dashboard');
+    }else{
+        $this->redirectTo = route('customer.dashboard');
+    }
+
+    //leave as is
+    $this->middleware('guest')->except('logout');
+}
+
+
+
+------*****-----END-----*****---
+
+
+------*****-----START-----*****---
+----LAVAREL DUSK----
+
+    "require": {
+        "php": "^7.1.3",
+        "fideloper/proxy": "^4.0",
+        "laravel/framework": "5.7.*",
+        "laravel/tinker": "^1.0"
+    }
+
+
+-----
+./LT --user ls1372
+LT --user example@lambdatest.com --key 123456789abcdefghijklmnopqrstuv --tunnelName LambdaTest
+
+
+----
+*******DEPLOYING TO AWS********
+
+chmod 400 connectify.pem
+ssh -i "connectify.pem" ec2-user@ec2-xx-x-xxx-xx.compute-1.amazonaws.com
+
+cd /var/www/html
+
+//create .env file
+sudo touch .env
+sudo nano .env
+
+//ngnix settings
+cd /etc/nginx
+ls
+cd conf.d
+cd elasticbeanstalk
+sudo touch laravel.conf
+ls
+sudo nano laravel.conf
+
+//put the code
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+//restart nginx
+sudo systemctl restart nginx
+
+
