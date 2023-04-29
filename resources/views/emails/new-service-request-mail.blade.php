@@ -1,4 +1,4 @@
-<p>Thank you for submitting a new move-in request with Water America.</p>
+<p>Thank you for submitting a new move-in request with Connectify-MoveEase.</p>
 <br><br><br>
 
 {{--<strong>Details of your new move-in request are:</strong><br>--}}
