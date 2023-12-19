@@ -1,11 +1,7 @@
-# Cloud Computing Project: Connectify MoveEase (Spring 2023)
+# Cloud Computing Project: Connectify MoveEase
 
-This is a repository for Cloud Computing Project
+This is a repository for Cloud Computing Project built using PHP Laravel (LAMP Stack), MySQL, Apache, HTML, CSS, JavaScript.
 
 **Live Version Here:**
 
 [Connectify](http://connectify.com)
-
-### Project Members:
-1. Lovedeep Singh
-2. Sonal Choudhary
